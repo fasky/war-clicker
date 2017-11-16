@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>War!</title>
+	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+	<link href = "index.css" rel = "stylesheet" type = "text/css">
+</head>
+<body>
+	<main>
+		<h1>War Clicker - A Simple Strategy Game</h1>
+		<div id="gridContainer"></div>
+		<div id="button">Collect</div>
+		<div id="newButton">New Game</div>
+		<p id ="gold">Gold: 0</p>
+		<p id = "goldRate">Gold/2s: 0</p>
+		<select id="colorChooser">
+			<option value="default" selected>Troops - 1G</option>
+			<option value="gold">Mine - 10G</option>
+			<option value="black">Wall - 20G</option>			
+		</select>
+		<select id="musicChooser">
+			<option value ="" selected>Music Player - No Music Playing</option>
+			<option value="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/67851977&amp;color=%23ff5500&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true">Air</option>
+			<option value="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/107030118&amp;color=%23ff5500&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true">Decisive Battle</option>	
+			<option value="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/311066636&amp;color=%23ff5500&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true">Halo - Reclaimer</option>		
+			<option value="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/212330638&amp;color=%23ff5500&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true">Midsummer</option>
+			<option value="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/207309318&amp;color=%23ff5500&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true">Bringer of War</option>	
+			<option value="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/64001724&amp;color=%23ff5500&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true">Halo - One Final Effort</option>		
+			<option value="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/158972948&amp;color=%23ff5500&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true">Ode to Joy</option>				
+		</select>
+		<p id="scenarioLabel">Scenario:</p>
+		<select id="factions">
+			<option value="1" >Rome (red) and Carthage</option>
+			<option value="2">Rome and Gauls</option>
+			<option value="3">Byzantines (purple) and Ottomans</option>
+			<option value="4">French (blue) Invasion of Russia</option>
+			<option value="5">Allies (blue) vs Axis</option>
+			<option value="6" selected>West(blue) vs East</option>
+			<option value="7">Allies vs Axis Expanded</option>
+		</select>
+		<p id = "diffLabel">Difficulty:</p>
+		<select id="difficulty">
+			<option value="1" >Easy</option>
+			<option value="2" selected>Medium</option>
+			<option value="3">Hard</option>
+		</select>
+		<p id="score">Score: 0</p>
+	</main>
+	
+	<aside>
+		<h2>Directions</h2>
+		<p>Eliminate all the enemy tiles.</p>
+		<p>Click the collect button to collect 1 gold.</p>
+		<p>A normal tile costs 1 gold, a mine that collects 1 gold every 2 seconds costs 10 gold, and a wall with more health than other tiles costs 20 gold.</p>		
+		<p>Your color is the one not spreading by itself.</p>
+		<p>Click to place your color on the map. You can place on enemy tiles adjacent to a friendly tile or on the green land tiles adjacent to a friendly tile.</p>
+		<p>You can drag the cursor on the map to place as well, as long as you have enough gold.</p>
+		<p>Change type of tile you place with the drop down menu.</p>
+		<p>Change scenario to get different starting positions.</p>
+		<p>Higher difficulty means faster enemy spread rate.</p>
+		<p>If you experience problems running this page, try using Chrome.</p>
+	</aside>
+	<iframe width="0%" height="0" scrolling="no" frameborder="no" src=""></iframe>
+	
+	<footer><a href = "documentation.html">Documentation</a> - Kyle Fasanella 2017</footer>
+	
+	<script>
+		let gold = 0;
+		const collector = document.querySelector("#button");
+		const start = document.querySelector("#newButton");
+		const numCols = 45;
+		const numRows = 30;
+		const cellWidth = 20;
+		const cellSpacing = 1;
+		const container = document.querySelector("#gridContainer");
+		const span = document.createElement('span');
+		const factionSelect = document.querySelector("#factions");
+		const difficultySelect = document.querySelector("#difficulty");
+		const colorSelect = document.querySelector("#colorChooser");
+		const musicSelect = document.querySelector("#musicChooser");
+		const scoreLabel = document.querySelector("#score");
+		const cells = [];
+		let difficulty = "2";
+		let diffNum = 2;
+		let factions = "6";
+		span.className = 'cell';
+		let enemyColor = "blue";
+		let color = "rgb(181, 0, 0)";
+		let defaultColor = "rgb(181, 0, 0)";
+		let interval;
+		let timeElapsed;
+		let mineNum = 0;
+		let wallCount = 0;
+		let active = true;
+		let score = 0;
+		let collectSound;
+		let placeSound;
+		let backgroundMusic;
+		let player = document.querySelector("iframe");
+		
+		//Sounds - method to handle sounds
+		function sounds(e){
+			this.sound = document.createElement("audio");
+			this.sound.src = e;
+			this.sound.setAttribute("preload", "auto");
+			this.sound.setAttribute("controls", "none");
+			this.sound.style.display = "none";
+			this.sound.volume = .1;
+			document.body.appendChild(this.sound);
+			this.play = function(){
+				this.sound.play();
+			}
+			this.stop = function(){
+				this.sound.pause();
+			}
+		}
+		
+		//map setup
+		//create grid
+		for(let row=0; row<numRows;row++){
+			cells.push([]);
+			for(let col = 0;col < numCols; col++){
+				let cell = span.cloneNode();
+				cell.style.left = `${col * (cellWidth+cellSpacing)}px`;
+				cell.style.top = `${row * (cellWidth+cellSpacing)}px`;
+				container.appendChild(cell);
+				cell.rowNum = row;
+				cell.colNum = col;
+				cell.health = 1;
+				cells[row][col] = cell;
+			}
+		}
+		
+		//fill cells to make map - method to help with it - can fill columns in instead of individual cells
+		let fill = (rowStart,rowEnd,column) =>{
+			for(let i = rowStart; i < rowEnd +1; i++){
+				cells[i][column].style.backgroundColor = "#dae4f0";
+			}
+		}
+		
+		//create map of europe - reset some values, set up start positions and difficulty
+		let createMap = () =>{
+		
+			//set cell background colors originally to "" (default css color);
+			for(let row = 0; row < cells.length; row++){
+				for(let col = 0; col < cells[0].length; col++){
+					cells[row][col].style.backgroundColor = "";
+				}
+			}
+			
+			//reset some values and ui
+			timeElapsed = 0;
+			active = true;
+			gold = 0;
+			document.querySelector("#gold").innerHTML = "Gold: " + gold;
+			mineNum = 0;
+			wallCount = 0;
+			document.querySelector("#goldRate").innerHTML = "Gold/2s: " + mineNum;
+			colorSelect.selectedIndex = 0;
+			placeSound = new sounds("place.wav");
+			collectSound = new sounds("collect.wav");
+			
+			//fill water in on map - cant touch those tiles
+			fill(0,0,0);
+			fill(3,3,0);
+			fill(5,27,0);
+			fill(5,15,1);
+			fill(21,25,1);
+			fill(4,14,2);
+			fill(22,24,2);
+			fill(3,14,3);
+			fill(0,0,4);
+			fill(2,3,4);
+			fill(5,5,4);
+			fill(7,14,4);
+			fill(23,23,4);
+			fill(1,1,5);
+			fill(7,8,5);
+			fill(10,14,5);
+			fill(23,23,5);
+			fill(6,8,6);
+			fill(11,14,6);
+			fill(22,23,6);
+			fill(6,7,7);
+			fill(12,13,7);
+			fill(22,23,7);
+			fill(0,1,8);
+			fill(6,7,8);
+			fill(19,19,8);
+			fill(21,23,8);
+			fill(0,2,9);
+			fill(6,6,9);
+			fill(18,22,9);
+			fill(0,5,10);
+			fill(17,22,10);
+			fill(0,4,11);
+			fill(15,21,11);
+			fill(0,2,12);
+			fill(15,21,12);
+			fill(0,1,13);
+			fill(16,21,13);
+			fill(0,1,14);
+			fill(15,21,14);
+			fill(0,1,15);
+			fill(14,21,15);
+			fill(0,0,16);
+			fill(15,15,16);
+			fill(19,21,16);
+			fill(16,21,17);
+			fill(25,25,17);
+			fill(17,25,18);
+			fill(0,0,19);
+			fill(13,14,19);
+			fill(18,20,19);
+			fill(22,25,19);
+			fill(0,0,20);
+			fill(13,15,20);
+			fill(19,20,20);
+			fill(23,26,20);
+			fill(0,0,21);
+			fill(15,16,21);
+			fill(21,27,21);
+			fill(15,17,22);
+			fill(19,27,22);
+			fill(0,0,23);
+			fill(16,18,23);
+			fill(20,28,23);
+			fill(0,0,24);
+			fill(17,28,24);
+			fill(20,26,25);
+			fill(22,25,26);
+			fill(23,26,27);
+			fill(19,19,28);
+			fill(21,26,28);
+			fill(18,27,29);
+			fill(18,18,30);
+			fill(20,27,30);
+			fill(18,18,31);
+			fill(22,27,31);
+			fill(14,16,32);
+			fill(18,18,32);
+			fill(23,27,32);
+			fill(12,17,33);
+			fill(23,27,33);
+			fill(12,17,34);
+			fill(23,27,34);
+			fill(12,16,35);
+			fill(23,27,35);
+			fill(13,16,36);
+			fill(23,23,36);
+			fill(25,27,36);
+			fill(14,16,37);
+			fill(24,26,37);
+			fill(12,16,38);
+			fill(23,24,38);
+			fill(11,17,39);
+			fill(11,11,40);
+			fill(14,17,40);
+			fill(14,17,41);
+			fill(16,17,42);
+			fill(16,16,43);
+			
+			//start position depends on faction
+			if(factions == "1"){
+				enemyColor = "blue";
+				cells[22][17].style.backgroundColor = "blue";
+				cells[17][19].style.backgroundColor = "rgb(181, 0, 0)";
+				//clicking color
+				color = "rgb(181, 0, 0)";
+				defaultColor = "rgb(181, 0, 0)";
+			}
+			else if(factions == "2"){
+				enemyColor = "green";
+				cells[6][10].style.backgroundColor = "green";
+				cells[17][19].style.backgroundColor = "rgb(181, 0, 0)";
+				//clicking color
+				color = "rgb(181, 0, 0)";
+				defaultColor = "rgb(181, 0, 0)";
+			}
+			else if(factions == "3"){
+				enemyColor = "tomato";
+				cells[13][44].style.backgroundColor = "tomato";
+				cells[16][29].style.backgroundColor = "purple";
+				color = "purple";
+				defaultColor = "purple";
+			}
+			else if(factions == "4"){
+				enemyColor = "red";
+				cells[2][36].style.backgroundColor = "red";
+				cells[9][10].style.backgroundColor = "royalblue";
+				color = "royalblue";
+				defaultColor = "royalblue";
+			}
+			else if(factions == "5"){
+				enemyColor = "darkred";
+				cells[7][18].style.backgroundColor = "darkred";
+				cells[5][9].style.backgroundColor = "darkblue";
+				color = "darkblue";
+				defaultColor = "darkblue";
+			}
+			else if(factions == "6"){
+				enemyColor = "crimson";
+				cells[0][44].style.backgroundColor = "crimson";
+				cells[9][5].style.backgroundColor = "navy";
+				color = "navy";
+				defaultColor = "navy";
+			}
+			else if(factions == "7"){
+				enemyColor = "darkred";
+				cells[7][18].style.backgroundColor = "darkred";
+				cells[28][26].style.backgroundColor = "darkred";
+				cells[13][30].style.backgroundColor = "darkred";
+				cells[5][9].style.backgroundColor = "darkblue";			
+				cells[21][44].style.backgroundColor = "darkblue";
+				cells[24][12].style.backgroundColor = "darkblue";
+				cells[0][44].style.backgroundColor = "darkblue";
+				color = "darkblue";
+				defaultColor = "darkblue";
+			}
+			
+			//clear interval so no stacking
+			clearInterval(interval);
+			
+			//have enemy spread at an interval based on difficulty
+			if(difficulty =="1"){
+				interval = setInterval(spread,400);
+				diffNum = 1;
+			}
+			else if(difficulty =="2"){
+				interval = setInterval(spread,250);
+				diffNum = 2;
+			}
+			else if(difficulty =="3"){
+				interval = setInterval(spread,150);
+				diffNum = 3;
+			}
+			
+		}
+		
+		//enemy spread - check cells to see if enemy can spread from them
+		let spread = () =>{
+			//check each cell
+			let blues = [];
+			for(let row = 0; row < cells.length; row++){
+				for(let col = 0; col < cells[0].length; col++){
+					//if enemy color, add to array, which we will later then choose a random cell from to check cells around it and choose a random valid one to turn evil
+					if(cells[row][col].style.backgroundColor == enemyColor){
+					
+						let validate = checkSurroundings(defaultColor,row,col);
+						let mineValidate = checkSurroundings("gold",row,col);
+						let wallValidate = checkSurroundings("black",row,col);		
+						
+						if(validate.length > 0 || mineValidate.length > 0 || wallValidate > 0){
+							blues.push(cells[row][col]);
+						}
+					}
+				}
+			}
+			//if valid blues exist, choose a random one to check for valid surroundings again and then choose a random valid surrounding tile to change to enemy color
+			if(blues.length > 0){
+			
+				let chosenCell = blues[Math.floor(Math.random() * (blues.length))];
+				let valid = checkSurroundings(defaultColor,chosenCell.rowNum, chosenCell.colNum);
+				let mineValid = checkSurroundings("gold",chosenCell.rowNum, chosenCell.colNum);
+				let wallValid = checkSurroundings("black",chosenCell.rowNum, chosenCell.colNum);
+				if(valid.length > 0 || mineValid.length > 0 || wallValid.length > 0){
+					let input;
+					if(mineValid.length > 0){
+						input = Math.floor(Math.random() *(mineValid.length));
+						mineValid[input].style.backgroundColor = enemyColor;
+						return;
+					}
+					else if(wallValid.length > 0){
+						input = Math.floor(Math.random() *(wallValid.length));
+						wallValid[input].health--;
+						return;
+					}
+					else if(valid.length > 0){
+						input = Math.floor(Math.random() *(valid.length));
+						valid[input].style.backgroundColor = enemyColor;
+						return;
+					}
+				}
+			}
+		}
+		
+		//call create map function to set up map
+		createMap();
+				
+		//check cells aroud cell for color or neutral
+		let checkSurroundings = (enemyColor,row,col)=>{
+			let valid = [];
+			if(row < cells.length - 1){
+				if(enemyColor != color)
+				{
+					if(cells[row + 1][col].style.backgroundColor == enemyColor){
+						valid.push(cells[row + 1][col]);
+					}
+				}
+				else{
+					if(cells[row + 1][col].style.backgroundColor == "#73976D" || cells[row + 1][col].style.backgroundColor == enemyColor || cells[row + 1][col].style.backgroundColor == ""){
+						valid.push(cells[row + 1][col]);
+					}
+				}
+			}
+			if(row < cells.length - 1 && col < cells[0].length - 1){
+				if(enemyColor != color)
+				{
+					if(cells[row + 1][col + 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row + 1][col + 1]);
+					}
+				}
+				else{
+					if(cells[row + 1][col + 1].style.backgroundColor == "#73976D" || cells[row + 1][col + 1].style.backgroundColor == "" || cells[row + 1][col + 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row + 1][col + 1]);
+					}
+				}
+			}
+			if(col < cells[0].length - 1){
+				if(enemyColor != color)
+				{
+					if(cells[row][col + 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row][col + 1]);
+					}
+				}
+				else{
+					if(cells[row][col + 1].style.backgroundColor == "#73976D" || cells[row][col + 1].style.backgroundColor == "" || cells[row][col + 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row][col + 1]);
+					}
+				}
+			}
+			if(row != 0){
+				if(enemyColor != color)
+				{
+					if(cells[row - 1][col].style.backgroundColor == enemyColor){
+						valid.push(cells[row - 1][col]);
+					}
+				}
+				else{
+					if(cells[row - 1][col].style.backgroundColor == "#73976D" || cells[row - 1][col].style.backgroundColor == "" || cells[row - 1][col].style.backgroundColor == enemyColor){
+						valid.push(cells[row - 1][col]);
+					}
+				}
+			}
+			if(col != 0){
+				if(enemyColor != color)
+				{
+					if(cells[row][col - 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row][col - 1]);
+					}
+				}
+				else{
+					if(cells[row][col - 1].style.backgroundColor == "#73976D" || cells[row][col - 1].style.backgroundColor == "" || cells[row][col - 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row][col - 1]);
+					}
+				}
+			}
+			if(row != 0 && col != 0){
+				if(enemyColor != color)
+				{
+					if(cells[row - 1][col - 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row - 1][col - 1]);
+					}
+				}
+				else{
+					if(cells[row - 1][col - 1].style.backgroundColor == "#73976D" || cells[row - 1][col - 1].style.backgroundColor == "" || cells[row - 1][col - 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row - 1][col - 1]);
+					}
+				}
+			}
+			if(col != 0 && row < cells.length - 1){
+				if(enemyColor != color)
+				{
+					if(cells[row + 1][col - 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row + 1][col - 1]);
+					}
+				}
+				else{
+					if(cells[row + 1][col - 1].style.backgroundColor == "#73976D" || cells[row + 1][col - 1].style.backgroundColor == "" || cells[row + 1][col - 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row + 1][col - 1]);
+					}
+				}
+			}
+			if(row != 0 && col < cells[0].length - 1){
+				if(enemyColor != color)
+				{
+					if(cells[row - 1][col + 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row - 1][col + 1]);
+					}
+				}
+				else{
+					if(cells[row - 1][col + 1].style.backgroundColor == "#73976D" || cells[row - 1][col + 1].style.backgroundColor == "" || cells[row - 1][col + 1].style.backgroundColor == enemyColor){
+						valid.push(cells[row - 1][col + 1]);
+					}
+				}
+			}
+			return valid;
+		}
+		
+		//player actions/methods
+		//check players move to see if cells around have a friendly
+		let checkMove = (friendly,row,col)=>{
+			try
+			{
+				let valid = [];
+				if(row < cells.length - 1){
+					if(cells[row + 1][col].style.backgroundColor == friendly){
+						valid.push(cells[row + 1][col]);
+					}
+				}
+				if(row < cells.length - 1 && col < cells[0].length - 1){
+					if(cells[row + 1][col + 1].style.backgroundColor == friendly){
+						valid.push(cells[row + 1][col + 1]);
+					}
+				}
+				if(col < cells[0].length - 1){
+					if(cells[row][col + 1].style.backgroundColor == friendly){
+						valid.push(cells[row][col + 1]);
+					}
+				}
+				if(row != 0){
+					if(cells[row - 1][col].style.backgroundColor == friendly){
+						valid.push(cells[row - 1][col]);
+					}
+				}
+				if(col != 0){
+					if(cells[row][col - 1].style.backgroundColor == friendly){
+						valid.push(cells[row][col - 1]);
+					}
+				}
+				if(row != 0 && col != 0){
+					if(cells[row - 1][col - 1].style.backgroundColor == friendly){
+						valid.push(cells[row - 1][col - 1]);
+					}
+				}
+				if(col != 0 && row < cells.length - 1){
+					if(cells[row + 1][col - 1].style.backgroundColor == friendly){
+						valid.push(cells[row + 1][col - 1]);
+					}
+				}
+				if(row != 0 && col < cells[0].length - 1){
+					if(cells[row - 1][col + 1].style.backgroundColor == friendly){
+						valid.push(cells[row - 1][col + 1]);
+					}
+				}
+				if(valid.length > 0){
+					return true;
+				}
+			}
+			catch(e){
+				//console.log("Your click and drag was invalid");
+				//drag and mouse up onto invalid tile, trivial error
+			}
+		}
+		
+		//clicking
+		//fillCell on click - place color and take away gold
+		let fillCell = (e) =>{
+			let rect = container.getBoundingClientRect();
+			let mouseX = e.clientX - rect.right;
+			let mouseY = e.clientY - rect.top;
+			let columnWidth = cellWidth+cellSpacing;
+			let col = Math.floor(mouseX/columnWidth);
+			let row = Math.floor(mouseY/columnWidth);
+			let selectedCell = cells[row][col];
+			if(color == "default"){
+				color = defaultColor;
+			}
+			if((e.target.style.backgroundColor == "" || e.target.style.backgroundColor == enemyColor || e.target.style.backgroundColor == "#73976D") && (checkMove(defaultColor,e.target.rowNum,e.target.colNum) == true || checkMove("gold",e.target.rowNum,e.target.colNum) == true  || checkMove("black",e.target.rowNum,e.target.colNum) == true) && gold > 0){
+				if(color == defaultColor){
+					gold--;
+					selectedCell.style.backgroundColor = color;
+					placeSound.play();
+				}
+				else if(color == "gold" && gold > 9){
+					gold -= 10;
+					selectedCell.style.backgroundColor = color;
+					placeSound.play();
+				}
+				else if(color == "black" && gold > 19){
+					gold -= 20;
+					selectedCell.style.backgroundColor = color;
+					selectedCell.health = 5;
+					placeSound.play();					
+				}
+				document.querySelector("#gold").innerHTML = "Gold: " + gold;
+			}
+			//console.log(`${col},${row}`);
+		}
+		
+		container.onclick = fillCell;	//try to fill cell on click
+		
+		//collect gold to place color on map
+		let collect = () =>{
+			gold++;
+			collectSound.play();
+			document.querySelector("#gold").innerHTML = "Gold: " + gold;
+		}
+		
+		//collect gold when button is clicked
+		collector.onclick = collect;
+		
+		//check for mines, update gold count
+		let mineCheck = () =>{
+		    mineNum = 0;
+			for(let row = 0; row < cells.length; row++){
+				for(let col = 0; col < cells[0].length; col++){
+					//check for mine color and add gold for each mine
+					if(cells[row][col].style.backgroundColor == "gold"){
+						gold++;
+						mineNum++;
+						document.querySelector("#gold").innerHTML = "Gold: " + gold;
+						document.querySelector("#goldRate").innerHTML = "Gold/2s: " + mineNum;
+					}
+				}
+			}
+		}
+		setInterval(mineCheck,2000); //check every 2 seconds
+		
+		//check if wall health is below 1, change to blue if necessary
+		let wallCheck = () =>{
+			wallCount = 0;
+			for(let row = 0; row < cells.length; row++){
+				for(let col = 0; col < cells[0].length; col++){
+				
+					if(cells[row][col].style.backgroundColor == "black"){
+						wallCount++;
+					}
+					
+					//check if a wall, check health, turn blue if dead
+					if(cells[row][col].style.backgroundColor == "black" && cells[row][col].health < 1){
+						cells[row][col].style.backgroundColor = enemyColor;
+					}
+					
+				}
+			}
+		}
+		setInterval(wallCheck, 300); //check at an interval
+		
+		//dragging, placing color, etc.
+		let mouseDown = false;
+		
+		//check for valid dragging
+		container.onmousemove = (e) =>{
+			e.preventDefault();
+			if(mouseDown && checkMove(color,e.target.rowNum,e.target.colNum) == true && gold > 0 && (e.target.style.backgroundColor == "#73976D" || e.target.style.backgroundColor == "" || e.target.style.backgroundColor == enemyColor)){
+				document.querySelector("#gold").innerHTML = "Gold: " + gold;
+				fillCell(e);
+			}
+		}
+		
+		//set mousedown true for dragging
+		container.onmousedown = (e) =>{
+			e.preventDefault();
+			mouseDown = true;
+		}
+		
+		//set it false when mouse is up
+		window.onmouseup = (e) =>{
+			e.preventDefault();
+			mouseDown = false;
+		}
+	
+		//color chooser
+		colorSelect.onchange = (e)=>{
+			color = e.target.value;
+		}
+		
+		//change difficulty for next game
+		difficultySelect.onchange =(e)=>{
+			difficulty = e.target.value;
+		}
+		
+		//similar to above but change factions and reset map
+		factionSelect.onchange =(e)=>{
+			factions = e.target.value;
+			createMap();		
+		}  
+		
+		//start button for new game
+		start.onclick = ()=>{
+			createMap();
+		}
+		
+		//scoring method, run every second - update score
+		//consider # of Players default color Squares, Gold, Walls, Mines, difficulty - divided by time?
+		let scoring = ()=>{
+			
+			//if actively scoring (game not won/lost) calculate score
+			if(active){
+				score = 0;
+				let squareCount = 0;
+				timeElapsed++; //add 1 for each second
+				let enemyCount = 0;
+				
+				for(let row = 0; row < cells.length; row++){
+					for(let col = 0; col < cells[0].length; col++){
+						if(cells[row][col].style.backgroundColor == defaultColor)
+						{
+							squareCount++;
+						}
+					}
+				}
+				
+				for(let row = 0; row < cells.length; row++){
+					for(let col = 0; col < cells[0].length; col++){
+						if(cells[row][col].style.backgroundColor == enemyColor)
+						{
+							enemyCount++;
+						}
+					}
+				}
+				
+				//if no enemies, stop scoring
+				if(enemyCount == 0){
+					active = false;					
+				}
+				
+				score = Math.round(((squareCount + (mineNum * 2) + (wallCount * 4))/timeElapsed) * 100 * diffNum);
+				
+				//if score is 0, you likely lost
+				if(score == 0){
+					scoreLabel.innerHTML = "You Lose";
+				}		
+				else{ //if it is a number, display it
+					scoreLabel.innerHTML = "Score: " + score;		
+				}				
+			}
+			
+		}
+		
+		//handle user selecting music
+		musicSelect.onchange = (e)=>{
+			player.src = e.target.value;
+		}
+		
+		setInterval(scoring, 1000); //check every second
+		
+	</script>
+
+</body>
+</html>

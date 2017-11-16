@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Documentation</title>
+	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+	<link href = "index.css" rel = "stylesheet" type = "text/css">
+</head>
+<body>
+	<main>
+		<h1>Documentation</h1>
+		<section>
+			<h2>Process</h2>
+				<p>I started with the Pixel Artist exercise. I put the styles in a css document and changed the cells styles.</p>
+				<p>I limited the color selection and then had the enemy color placed on the board. I coded the spread method and related methods for it to spread by itself.</p>
+				<p>I then built the createMap function and made it so you could only place tiles on land or on enemies adjacent to your tiles.</p>
+				<p>I then added in the gold system so that there was some challenge in the early game, at least. Once you place mines, you can focus on taking over all the enemy tiles as you don't have to click on the collect button anymore.</p>
+				<p>Then, I coded in the placement of different buildings based on color selection and made them cost different amounts of gold.</p>
+				<p>Next, I put in the scenario chooser and varied the default placing color and the enemies color, along with spawn positions.</p>
+				<p>Then I coded in difficulty, which affects the spread rate of the enemy.</p>
+				<p>Then I figured out a way to calculate score and display it.</p>
+				<p>I next put in the new game button.</p>
+				<p>Last, I put in a music selector and sounds. I made sure the mp3s were within or below a normal 4-6MB range.</p>
+				<p>I figured out the design of the page early on, once the map was created.</p>
+				<p>The mp3s would not upload to banjo (but the drop down menu worked and they played/stopped correctly) so I used soundcloud embeds with no visuals instead of their filenames. Hopefully it works for you. You may need to adjust your volume. Errors occour becuase of the player, I assume, but they don't seem to affect anything.</p>
+				<p>Music is sourced from Soundcloud.</p>
+			<h2>Requirements</h2>
+				<p>Functionality - DOM Game - Strategy type of game, place different buildings, has a clear goal. One error rarely occours when placing near the edge of the map and the cell it calls is undefined because it doesn't exist. But this error has no effect on the game and you only know about it from the console and if you are flying around with the mouse near the edge of the grid. The game is pretty easy to pick up. Colors may take a couple seconds to switch when you select them in the menu.</p>
+				<p>Design - Labeled drop down menus, I think everything is clear to the user. Included directions on the side. Design is pleasing to me - not too in your face or bare.</p>
+				<p>HTML/CSS - Validates.</p>
+				<p>Code - Methods commented.</p>
+				<p>Documentation - Done.</p>
+				<p>Extra - Added selection of music, a number of scenarios, varying difficulty, and score determination.</p>
+			<h2>Features</h2>
+				<p>Music selector. Drop down menu under the collect button. Default selection is no music.</p>
+				<p>Multiple types of buildings.</p>
+				<p>Change difficulty.</p>
+				<p>Multiple scenarios with different colors and starting positions.</p>
+			<h2>Note</h2>
+				<p>The original method of playing music stopped working the next day, so the zip file will have different code than the live web page on banjo, which utilizes SoundCloud now and seems to work.</p>
+		</section>
+	</main>
+</body>
+</html>
